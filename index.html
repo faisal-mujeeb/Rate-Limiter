@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rate Limiter Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="font-sans">
+    <div class="max-w-3xl mx-auto p-5">
+        <div class="border border-gray-300 rounded-lg p-5">
+            <h1 class="text-2xl font-bold mb-4">Rate Limiter Test</h1>
+            <div class="space-x-4">
+                <button id="sendRequest" class="bg-blue-500 hover:bg-blue-600 text-white px-5 py-2 rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed">
+                    Send Request
+                </button>
+                <button id="sendMultiple" class="bg-blue-500 hover:bg-blue-600 text-white px-5 py-2 rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed">
+                    Send 10 Requests
+                </button>
+            </div>
+            <div class="mt-5 bg-gray-100 rounded-lg p-4">
+                <h3 class="text-lg font-semibold mb-2">Results:</h3>
+                <div id="resultsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'YOUR_BACKEND_API_URL'; // Replace with your actual API endpoint
+
+        async function makeRequest() {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                return {
+                    success: response.ok,
+                    status: response.status,
+                    data: data
+                };
+            } catch (error) {
+                return {
+                    success: false,
+                    status: 'Error',
+                    data: error.message
+                };
+            }
+        }
+
+        function addResult(result) {
+            const resultsList = document.getElementById('resultsList');
+            const resultItem = document.createElement('div');
+            resultItem.className = result.success ? 'text-green-600' : 'text-red-600';
+            resultItem.textContent = `Status: ${result.status} - ${JSON.stringify(result.data)}`;
+            resultsList.insertBefore(resultItem, resultsList.firstChild);
+        }
+
+        document.getElementById('sendRequest').addEventListener('click', async () => {
+            const result = await makeRequest();
+            addResult(result);
+        });
+
+        document.getElementById('sendMultiple').addEventListener('click', async () => {
+            const button = document.getElementById('sendMultiple');
+            button.disabled = true;
+            
+            for (let i = 0; i < 10; i++) {
+                const result = await makeRequest();
+                addResult(result);
+                await new Promise(resolve => setTimeout(resolve, 100)); // Small delay between requests
+            }
+            
+            button.disabled = false;
+        });
+    </script>
+</body>
+</html> 
